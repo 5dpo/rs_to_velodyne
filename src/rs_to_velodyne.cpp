@@ -27,22 +27,22 @@ static int RING_ID_MAP_16[] = {
 // rslidar的点云格式
 struct RsPointXYZIRT {
     PCL_ADD_POINT4D;
-    uint8_t intensity;
-    uint16_t ring = 0;
+    std::uint8_t intensity;
+    std::uint16_t ring = 0;
     double timestamp = 0;
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 } EIGEN_ALIGN16;
 POINT_CLOUD_REGISTER_POINT_STRUCT(RsPointXYZIRT,
-                                  (float, x, x)(float, y, y)(float, z, z)(uint8_t, intensity, intensity)
-                                          (uint16_t, ring, ring)(double, timestamp, timestamp))
+                                  (float, x, x)(float, y, y)(float, z, z)(std::uint8_t, intensity, intensity)
+                                          (std::uint16_t, ring, ring)(double, timestamp, timestamp))
 
 // velodyne的点云格式
 struct VelodynePointXYZIRT {
     PCL_ADD_POINT4D
 
     PCL_ADD_INTENSITY;
-    uint16_t ring;
+    std::uint16_t ring;
     float time;
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -50,14 +50,14 @@ struct VelodynePointXYZIRT {
 
 POINT_CLOUD_REGISTER_POINT_STRUCT (VelodynePointXYZIRT,
                                    (float, x, x)(float, y, y)(float, z, z)(float, intensity, intensity)
-                                           (uint16_t, ring, ring)(float, time, time)
+                                           (std::uint16_t, ring, ring)(float, time, time)
 )
 
 struct VelodynePointXYZIR {
     PCL_ADD_POINT4D
 
     PCL_ADD_INTENSITY;
-    uint16_t ring;
+    std::uint16_t ring;
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 } EIGEN_ALIGN16;
@@ -65,7 +65,7 @@ struct VelodynePointXYZIR {
 POINT_CLOUD_REGISTER_POINT_STRUCT (VelodynePointXYZIR,
                                    (float, x, x)(float, y, y)
                                            (float, z, z)(float, intensity, intensity)
-                                           (uint16_t, ring, ring)
+                                           (std::uint16_t, ring, ring)
 )
 
 ros::Subscriber subRobosensePC;
@@ -77,7 +77,7 @@ bool has_nan(T point) {
     // remove nan point, or the feature assocaion will crash, the surf point will containing nan points
     // pcl remove nan not work normally
     // ROS_ERROR("Containing nan point!");
-    if (pcl_isnan(point.x) || pcl_isnan(point.y) || pcl_isnan(point.z)) {
+    if (std::isnan(point.x) || std::isnan(point.y) || std::isnan(point.z)) {
         return true;
     } else {
         return false;
@@ -93,7 +93,7 @@ void publish_points(T &new_pc, const sensor_msgs::PointCloud2 &old_msg) {
     sensor_msgs::PointCloud2 pc_new_msg;
     pcl::toROSMsg(*new_pc, pc_new_msg);
     pc_new_msg.header = old_msg.header;
-    pc_new_msg.header.frame_id = "velodyne";
+    //pc_new_msg.header.frame_id = "velodyne";
     pubRobosensePC.publish(pc_new_msg);
 }
 
@@ -206,18 +206,18 @@ int main(int argc, char **argv) {
         output_type = argv[2];
 
         if (std::strcmp("XYZI", argv[1]) == 0) {
-            subRobosensePC = nh.subscribe("/rslidar_points", 1, rsHandler_XYZI);
+            subRobosensePC = nh.subscribe("rslidar_points", 1, rsHandler_XYZI);
         } else if (std::strcmp("XYZIRT", argv[1]) == 0) {
-            subRobosensePC = nh.subscribe("/rslidar_points", 1, rsHandler_XYZIRT);
+            subRobosensePC = nh.subscribe("rslidar_points", 1, rsHandler_XYZIRT);
         } else {
-            ROS_ERROR(argv[1]);
+            ROS_ERROR("%s", argv[1]);
             ROS_ERROR("Unsupported input pointcloud type. Currently only support XYZI and XYZIRT.");
             exit(1);
         }
     }
-    pubRobosensePC = nh.advertise<sensor_msgs::PointCloud2>("/velodyne_points", 1);
+    pubRobosensePC = nh.advertise<sensor_msgs::PointCloud2>("velodyne_points", 1);
 
-    ROS_INFO("Listening to /rslidar_points ......");
+    ROS_INFO("Listening to the topic rslidar_points ......");
     ros::spin();
     return 0;
 }
