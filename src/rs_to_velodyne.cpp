@@ -93,7 +93,7 @@ void publish_points(T &new_pc, const sensor_msgs::PointCloud2 &old_msg) {
     sensor_msgs::PointCloud2 pc_new_msg;
     pcl::toROSMsg(*new_pc, pc_new_msg);
     pc_new_msg.header = old_msg.header;
-    pc_new_msg.header.frame_id = "velodyne";
+    //pc_new_msg.header.frame_id = "velodyne";
     pubRobosensePC.publish(pc_new_msg);
 }
 
